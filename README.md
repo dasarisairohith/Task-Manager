@@ -96,7 +96,7 @@ task-manager/
 
 ---
 
-## 🔍 Detailed Code & Module Walkthrough (Interview Reference)
+## 🔍 Detailed Code & Module Walkthrough
 
 ### 1. Database Schema & Supabase Setup (`/migrations/01_initial_schema.sql`)
 - **`profiles` table**: Stores Google user metadata (`id`, `email`, `full_name`, `avatar_url`).
