@@ -171,30 +171,7 @@ npm run dev
 
 ---
 
-## 🌐 Production Deployment Guide
 
-### 1. Deploy Frontend to Vercel
-1. Push project to GitHub repository.
-2. Import project into Vercel and set Root Directory to `frontend`.
-3. Add Environment Variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_API_BASE_URL` (Points to deployed Flask backend URL)
-4. Click **Deploy**.
-
-### 2. Deploy Backend to Render / Railway
-1. Create a new Web Service on Render / Railway pointing to your repository.
-2. Set Root Directory to `backend`.
-3. Build Command: `pip install -r requirements.txt`
-4. Start Command: `gunicorn app:app`
-5. Add Environment Variables:
-   - `SUPABASE_URL`
-   - `SUPABASE_KEY`
-   - `GMAIL_USER`
-   - `GMAIL_APP_PASSWORD`
-   - `FRONTEND_URL` (Points to deployed Vercel frontend URL)
-
----
 
 ## ⚡ Added Business Value Features (Bonus Points)
 - **Task Discussion Feed**: Team members can post comments and updates directly on task items.
