@@ -25,6 +25,7 @@ export default function CreateTaskModal({ isOpen, onClose, users, currentUser, o
   const [priority, setPriority] = useState('medium');
   const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
@@ -32,6 +33,7 @@ export default function CreateTaskModal({ isOpen, onClose, users, currentUser, o
     e.preventDefault();
     if (!title.trim()) return;
     setLoading(true);
+    setError('');
     try {
       await onSubmit({
         title,
@@ -47,7 +49,9 @@ export default function CreateTaskModal({ isOpen, onClose, users, currentUser, o
       setDueDate('');
       onClose();
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : 'Failed to create task';
+      console.error('Create task error:', err);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -151,6 +155,12 @@ export default function CreateTaskModal({ isOpen, onClose, users, currentUser, o
               <span>
                 Gmail Notification will be automatically sent to <strong>{selectedAssignee.email}</strong> upon creation.
               </span>
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <strong>Could not save task:</strong> {error}
             </div>
           )}
 
