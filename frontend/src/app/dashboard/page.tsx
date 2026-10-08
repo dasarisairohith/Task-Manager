@@ -46,12 +46,6 @@ export default function DashboardPage() {
         full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
         avatar_url: session.user.user_metadata?.avatar_url || '',
       };
-    } else {
-      // Check demo user in localStorage
-      const demoStr = localStorage.getItem('demo_user');
-      if (demoStr) {
-        userProfile = JSON.parse(demoStr);
-      }
     }
 
     if (!userProfile) {
