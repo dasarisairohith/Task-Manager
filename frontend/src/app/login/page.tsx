@@ -4,13 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/lib/api';
-import { CheckCircle2, ShieldCheck, Mail, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [demoEmail, setDemoEmail] = useState('john.doe@gmail.com');
-  const [demoName, setDemoName] = useState('John Doe');
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -55,28 +54,12 @@ export default function LoginPage() {
       if (error) throw error;
     } catch (err: any) {
       console.error('Google OAuth Error:', err.message);
-      alert('Google Sign-In notice: Redirecting via OAuth. If in dev mode without OAuth keys set up, use Demo Login below.');
+      alert('Google Sign-In failed. Please verify the Supabase Google provider and OAuth redirect configuration.');
       setLoading(false);
     }
   };
 
-  const handleDemoSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Create a deterministic session for local testing
-    const demoUser = {
-      id: 'demo-user-123',
-      email: demoEmail,
-      full_name: demoName,
-      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(demoEmail)}`,
-    };
-    
-    // Store in localStorage & sync with backend
-    localStorage.setItem('demo_user', JSON.stringify(demoUser));
-    await api.syncProfile(demoUser);
-    setLoading(false);
-    router.push('/dashboard');
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4">
@@ -135,50 +118,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 w-full"></div>
-          <span className="bg-white px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider absolute">
-            or Quick Demo Sign-In
-          </span>
-        </div>
 
-        {/* Demo User Form */}
-        <form onSubmit={handleDemoSignIn} className="space-y-3">
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Gmail / User Email</label>
-            <div className="relative">
-              <input
-                type="email"
-                value={demoEmail}
-                onChange={(e) => setDemoEmail(e.target.value)}
-                required
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                placeholder="name@gmail.com"
-              />
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
-            <input
-              type="text"
-              value={demoName}
-              onChange={(e) => setDemoName(e.target.value)}
-              required
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              placeholder="Full Name"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-200 transition-all text-sm"
-          >
-            <span>Enter Dashboard as Demo User</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
 
         <p className="text-center text-xs text-slate-400">
           Powered by Supabase PostgreSQL, Flask REST API & Next.js 14

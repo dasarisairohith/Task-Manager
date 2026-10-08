@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [analytics, setAnalytics] = useState<TaskAnalytics>({ total: 0, completed: 0, in_progress: 0, todo: 0, pending: 0 });
+  const [analytics, setAnalytics] = useState<TaskAnalytics>({ total: 0, completed: 0, in_progress: 0, todo: 0, pending: 0, overdue: 0 });
 
   // Filters & Search
   const [activeTab, setActiveTab] = useState<'all' | 'assigned_to_me' | 'created_by_me' | 'completed'>('all');
@@ -46,12 +46,6 @@ export default function DashboardPage() {
         full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
         avatar_url: session.user.user_metadata?.avatar_url || '',
       };
-    } else {
-      // Check demo user in localStorage
-      const demoStr = localStorage.getItem('demo_user');
-      if (demoStr) {
-        userProfile = JSON.parse(demoStr);
-      }
     }
 
     if (!userProfile) {
@@ -87,23 +81,21 @@ export default function DashboardPage() {
   // Handlers for Task Operations
   const handleCreateTask = async (taskData: any) => {
     if (!currentUser) return;
-    const res = await api.createTask({
-      ...taskData,
-      created_by: currentUser.id,
-    });
+    const res = await api.createTask(taskData);
     if (res.success || res.task) {
       await loadData(currentUser);
+    } else {
+      throw new Error(res.error || 'Failed to create task');
     }
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!currentUser) return;
-    const res = await api.updateTask(taskId, {
-      ...updates,
-      updated_by: currentUser.id,
-    });
+    const res = await api.updateTask(taskId, updates);
     if (res.success) {
       await loadData(currentUser);
+    } else {
+      throw new Error(res.error || 'Failed to update task');
     }
   };
 
@@ -114,7 +106,8 @@ export default function DashboardPage() {
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm('Are you sure you want to delete this task?')) return;
     if (!currentUser) return;
-    await api.deleteTask(taskId);
+    const res = await api.deleteTask(taskId);
+    if (!res.success) throw new Error(res.error || 'Failed to delete task');
     await loadData(currentUser);
   };
 
