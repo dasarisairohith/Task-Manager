@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [demoEmail, setDemoEmail] = useState('john.doe@gmail.com');
   const [demoName, setDemoName] = useState('John Doe');
+  const demoEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -55,27 +56,24 @@ export default function LoginPage() {
       if (error) throw error;
     } catch (err: any) {
       console.error('Google OAuth Error:', err.message);
-      alert('Google Sign-In notice: Redirecting via OAuth. If in dev mode without OAuth keys set up, use Demo Login below.');
+      alert('Google Sign-In failed. Please verify the Supabase Google provider and OAuth redirect configuration.');
       setLoading(false);
     }
   };
 
   const handleDemoSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!demoEnabled) return;
     setLoading(true);
-    // Create a deterministic session for local testing
-    const demoUser = {
-      id: 'demo-user-123',
-      email: demoEmail,
-      full_name: demoName,
-      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(demoEmail)}`,
-    };
-    
-    // Store in localStorage & sync with backend
-    localStorage.setItem('demo_user', JSON.stringify(demoUser));
-    await api.syncProfile(demoUser);
-    setLoading(false);
-    router.push('/dashboard');
+    try {
+      const demoUser = { id: 'demo-user-123', email: demoEmail, full_name: demoName, avatar_url: '' };
+      localStorage.setItem('demo_user', JSON.stringify(demoUser));
+      throw new Error('Demo login is disabled for the deployment build. Use Google Sign-In.');
+    } catch (err: any) {
+      localStorage.removeItem('demo_user');
+      alert(err.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,7 +141,7 @@ export default function LoginPage() {
           </span>
         </div>
 
-        {/* Demo User Form */}
+        {demoEnabled && (/* Demo User Form */)
         <form onSubmit={handleDemoSignIn} className="space-y-3">
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Gmail / User Email</label>
@@ -178,7 +176,7 @@ export default function LoginPage() {
             <span>Enter Dashboard as Demo User</span>
             <ArrowRight className="w-4 h-4" />
           </button>
-        </form>
+        </form>)}
 
         <p className="text-center text-xs text-slate-400">
           Powered by Supabase PostgreSQL, Flask REST API & Next.js 14
