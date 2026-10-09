@@ -57,8 +57,18 @@ class SupabaseService:
     def create_task(self,title,description,created_by,assigned_to=None,priority="medium",due_date=None):
         if not self.client: return None
         payload={"title":title.strip(),"description":description.strip() if description else "","created_by":created_by,"assigned_to":assigned_to or None,"priority":priority,"status":"todo","due_date":due_date or None}
-        res=self.client.table("tasks").insert(payload).execute()
-        return res.data[0] if res.data else None
+        # Explicitly request the inserted row back from Supabase so the API
+        # can confirm which record was saved.
+        try:
+            res = self.client.table("tasks").insert(payload).select("*").execute()
+            if not res.data:
+                print("[SupabaseService Error]: Task insert returned no row.")
+                return None
+            print(f"[SupabaseService Success]: Created task id={res.data[0].get('id')}")
+            return res.data[0]
+        except Exception as e:
+            print(f"[SupabaseService Error]: Task insert failed: {e}")
+            raise
 
     def update_task(self,task_id,updates):
         if not self.client: return None
