@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { api } from '@/lib/api';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 
@@ -52,6 +52,11 @@ export default function LoginPage() {
   }, [router]);
 
   const handleGoogleSignIn = async () => {
+    if (!isSupabaseConfigured) {
+      alert('Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to frontend/.env.local, then restart the frontend.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -107,7 +112,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            disabled={loading}
+            disabled={loading || !isSupabaseConfigured}
             className="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24">
@@ -128,8 +133,13 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>{loading ? 'Connecting to Google…' : 'Continue with Google'}</span>
+            <span>{!isSupabaseConfigured ? 'Google sign-in needs Supabase setup' : loading ? 'Connecting to Google…' : 'Continue with Google'}</span>
           </button>
+          {!isSupabaseConfigured && (
+            <p className="text-center text-xs leading-5 text-amber-700" role="status">
+              Add your Supabase project URL and public anon key to frontend/.env.local when you are ready to enable sign-in.
+            </p>
+          )}
           <p className="text-center text-xs leading-5 text-slate-500">
             New to Task Manager? Your account is created automatically the first time you continue with Google.
             Existing users can use the same button to sign in with their Gmail/Google account.
