@@ -64,23 +64,43 @@ def create_task():
             datetime.fromisoformat(due_date.replace("Z", "+00:00"))
         except ValueError:
             return jsonify({"error": "Invalid due_date"}), 400
+    # Only assign tasks to an existing registered user.
+    if assigned_to:
+        assignee_profile = supabase_service.get_user_profile(assigned_to)
+        if not assignee_profile:
+            return jsonify({"error": "Assignee must be a registered Task Manager user"}), 400
+
     try:
         task = supabase_service.create_task(title, description, g.current_user.id, assigned_to, priority, due_date)
     except Exception:
         return jsonify({"error": "Failed to create task in Supabase"}), 500
     if not task:
         return jsonify({"error": "Failed to create task in Supabase"}), 500
+
     full_task = supabase_service.get_task_by_id(task["id"])
-    # Notify the assigned collaborator when a new task is created.
-    assignee = full_task.get("assignee") if full_task else None
-    if assignee and assignee.get("email"):
+    if full_task:
         creator = full_task.get("creator") or {}
-        email_service.send_task_created_notification(
-            assignee["email"], assignee.get("full_name") or assignee["email"],
-            title, description,
-            creator.get("full_name") or getattr(g.current_user, "email", "A collaborator"),
-            due_date, priority
-        )
+        assignee = full_task.get("assignee") or {}
+        creator_email = creator.get("email") or getattr(g.current_user, "email", None)
+        creator_name = creator.get("full_name") or creator_email or "A collaborator"
+
+        # Notify the creator and assigned user, without sending duplicate messages
+        # when the task is unassigned or both addresses happen to be the same.
+        recipients = {}
+        if creator_email:
+            recipients[creator_email.casefold()] = (creator_email, creator_name)
+        if assignee.get("email"):
+            assignee_email = assignee["email"]
+            recipients[assignee_email.casefold()] = (
+                assignee_email, assignee.get("full_name") or assignee_email
+            )
+
+        for recipient_email, recipient_name in recipients.values():
+            email_service.send_task_created_notification(
+                recipient_email, recipient_name, title, description,
+                creator_name, due_date, priority
+            )
+
     return jsonify({"success": True, "task": full_task or task}), 201
 
 
