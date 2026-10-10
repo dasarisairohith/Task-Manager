@@ -1,14 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://demo.supabase.co'
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
 
-// Normalize accidental REST/Auth endpoint values entered in hosting settings.
-// Supabase createClient expects the project root URL, not /rest/v1 or /auth/v1.
+// Keep the UI loadable before credentials are supplied, but never silently use
+// demo credentials. Authentication/actions must remain disabled until configured.
+export const isSupabaseConfigured = Boolean(rawSupabaseUrl && supabaseAnonKey)
+
 const supabaseUrl = rawSupabaseUrl
-  .trim()
-  .replace(/\/+$/, '')
-  .replace(/\/(rest\/v1|auth\/v1)\/?$/, '')
+  ? rawSupabaseUrl.replace(/\/+$/, '').replace(/\/(rest\/v1|auth\/v1)\/?$/, '')
+  : 'https://your-project.supabase.co'
 
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'demo-key'
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey || 'missing-supabase-anon-key'
+)
