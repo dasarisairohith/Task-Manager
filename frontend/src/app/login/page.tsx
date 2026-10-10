@@ -1,12 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { api } from '@/lib/api';
 import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Sync profile to Flask backend
+        api.syncProfile({
+          id: session.user.id,
+          email: session.user.email || '',
+          full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+          avatar_url: session.user.user_metadata?.avatar_url || '',
+        });
+        router.push('/dashboard');
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        await api.syncProfile({
+          id: session.user.id,
+          email: session.user.email || '',
+          full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+          avatar_url: session.user.user_metadata?.avatar_url || '',
+        });
+        router.push('/dashboard');
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
