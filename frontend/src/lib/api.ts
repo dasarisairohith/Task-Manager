@@ -1,12 +1,6 @@
 import { supabase } from './supabaseClient';
 
-// Use the local Flask API during development and the Render service in production.
-// NEXT_PUBLIC_API_BASE_URL can override either value in the hosting environment.
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://task-manager-backend.onrender.com/api'
-    : 'http://localhost:5000/api');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 export interface UserProfile { id:string; email:string; full_name:string; avatar_url?:string; }
 export interface Task { id:string; title:string; description?:string; status:'todo'|'in_progress'|'completed'; priority:'low'|'medium'|'high'; due_date?:string; created_by:string; assigned_to?:string; creator?:UserProfile; assignee?:UserProfile; created_at:string; updated_at:string; }
