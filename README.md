@@ -16,17 +16,27 @@ Flask REST API ───────► Supabase PostgreSQL
 
 The browser authenticates with Supabase. Every protected Flask endpoint validates the Supabase access token and uses the authenticated user ID from the token rather than trusting user IDs supplied by the browser.
 
+## Application flow
+
+1. Opening the application sends the user to the sign-in page.
+2. The user continues with Google. Supabase creates their account on their first sign-in and authenticates existing accounts on later sign-ins.
+3. After authentication, the user is taken to the TaskFlow dashboard.
+4. The dashboard loads the user's profile, tasks and analytics from the Flask API, which reads and writes application data in Supabase.
+5. Users can create tasks and assign them to registered Task Manager users. Gmail notifications are sent for task creation and when a task first changes to **Completed**.
+
 ## Features
 
-- Google OAuth login through Supabase
+- Google OAuth sign-in through Supabase; a user's Task Manager account is created on their first Google sign-in
+- Sign-in-first application flow: opening the app routes to sign-in, then successful Google authentication opens the dashboard
 - Secure authenticated Flask API
-- Create, assign, edit, complete, reopen and delete tasks
+- Create, assign to registered users, edit, complete, reopen and delete tasks
+- Store and fetch tasks and user profiles through the Flask API and Supabase PostgreSQL
 - Task priorities and due dates
 - Search across task title and description
 - Task filtering and dashboard tabs
 - Task discussion/comments
-- Gmail notification when a task is assigned
-- Gmail notification when a task is completed
+- Gmail notification when a task is created (sent to the creator and, if assigned, the assignee)
+- Gmail notification when a task is marked completed (sent to the creator and assignee)
 - Total, pending, in-progress, completed and overdue analytics
 - Overdue task indicators
 - Supabase Row Level Security
@@ -192,10 +202,13 @@ For Gmail SMTP:
 2. Create a Google App Password.
 3. Set `GMAIL_USER`.
 4. Set `GMAIL_APP_PASSWORD`.
-5. Test task-assignment email.
-6. Test task-completion email.
+5. Set `SMTP_SERVER=smtp.gmail.com` and `SMTP_PORT=587`.
+6. Create a task and check the creator's inbox and the assignee's inbox (when assigned).
+7. Mark a task completed and check the creator's and assignee's inboxes.
 
 Do not use your normal Gmail password.
+
+Email delivery was confirmed during local testing. Test task-created and task-completed notifications separately in the environment you deploy, since receiving one email does not by itself verify both event paths. Notifications are dispatched in a background thread by the Flask backend.
 
 # 🚀 Production deployment
 

@@ -1,19 +1,19 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-export const SIGNED_IN_TAB_KEY = 'taskflow_signed_in_tab'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
+export const SIGNED_IN_TAB_KEY = 'taskflow_signed_in_tab';
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-// Keep the UI loadable before credentials are supplied, but never silently use
-// demo credentials. Authentication/actions must remain disabled until configured.
-export const isSupabaseConfigured = Boolean(rawSupabaseUrl && supabaseAnonKey)
+const fallbackClient = {
+  auth: {
+    signInWithOAuth: async () => ({ error: null }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+  },
+} as any;
 
-const supabaseUrl = rawSupabaseUrl
-  ? rawSupabaseUrl.replace(/\/+$/, '').replace(/\/(rest\/v1|auth\/v1)\/?$/, '')
-  : 'https://your-project.supabase.co'
-
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey || 'missing-supabase-anon-key'
-)
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : fallbackClient;

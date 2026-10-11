@@ -84,7 +84,7 @@ export default function TaskCard({ task, onStatusChange, onEdit, onDelete, onOpe
               <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-full">
                 <img
                   src={task.assignee.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${task.assignee.email}`}
-                  alt={task.assignee.full_name}
+                  alt={task.assignee.full_name || task.assignee.email}
                   className="w-4 h-4 rounded-full object-cover"
                 />
                 <span className="font-semibold text-slate-700 text-[11px] truncate max-w-[100px]">
