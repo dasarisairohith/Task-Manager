@@ -1,55 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { api } from '@/lib/api';
+import { useState } from 'react';
+import { supabase, isSupabaseConfigured, SIGNED_IN_TAB_KEY } from '@/lib/supabaseClient';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    const syncAndRedirect = async (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
-      if (!session || !active) return;
-
-      try {
-        await api.syncProfile({
-          id: session.user.id,
-          email: session.user.email || '',
-          full_name:
-            session.user.user_metadata?.full_name ||
-            session.user.user_metadata?.name ||
-            session.user.email?.split('@')[0] ||
-            'User',
-          avatar_url:
-            session.user.user_metadata?.avatar_url ||
-            session.user.user_metadata?.picture ||
-            '',
-        });
-      } catch (error) {
-        console.error('Profile sync failed:', error);
-      }
-
-      if (active) router.replace('/dashboard');
-    };
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      void syncAndRedirect(session);
-    });
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) void syncAndRedirect(session);
-    });
-
-    return () => {
-      active = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, [router]);
 
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured) {
@@ -58,6 +14,7 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    sessionStorage.setItem(SIGNED_IN_TAB_KEY, 'pending');
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -72,6 +29,7 @@ export default function LoginPage() {
 
       if (error) throw error;
     } catch (error) {
+      sessionStorage.removeItem(SIGNED_IN_TAB_KEY);
       console.error('Google OAuth error:', error);
       alert(
         'Google sign-in could not start. Check that Google is enabled in Supabase Authentication and that this site URL is in the allowed redirect URLs.'

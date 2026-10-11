@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+export const SIGNED_IN_TAB_KEY = 'taskflow_signed_in_tab'
+
 const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
 

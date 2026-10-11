@@ -1,7 +1,7 @@
 'use client';
 
 import { UserProfile } from '@/lib/api';
-import { supabase } from '@/lib/supabaseClient';
+import { SIGNED_IN_TAB_KEY, supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { Plus, LogOut, CheckSquare, Sparkles } from 'lucide-react';
 
@@ -15,6 +15,7 @@ export default function Navbar({ user, onOpenCreateModal }: NavbarProps) {
 
   const handleLogout = async () => {
     localStorage.removeItem('demo_user');
+    sessionStorage.removeItem(SIGNED_IN_TAB_KEY);
     await supabase.auth.signOut();
     router.push('/login');
   };

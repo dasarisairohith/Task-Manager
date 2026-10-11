@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { SIGNED_IN_TAB_KEY, supabase } from '@/lib/supabaseClient';
 import { api, Task, UserProfile, TaskAnalytics } from '@/lib/api';
 import Navbar from '@/components/Navbar';
 import AnalyticsCards from '@/components/AnalyticsCards';
@@ -35,6 +35,13 @@ export default function DashboardPage() {
   }, []);
 
   const initSession = async () => {
+    if (sessionStorage.getItem(SIGNED_IN_TAB_KEY) !== 'pending') {
+      await supabase.auth.signOut({ scope: 'local' });
+      router.replace('/login');
+      setLoading(false);
+      return;
+    }
+
     let userProfile: UserProfile | null = null;
     
     // Check Supabase OAuth session
