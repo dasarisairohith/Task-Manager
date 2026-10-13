@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://task-manager-blush-seven-93.vercel.app/api';
+const API_BASE_URL = process.env.NEXT_PUXX_API_BASE_URL || 'https://task-manager-blush-seven-93.vercel.app/api';
 
 export type TaskStatus = 'todo' | 'in_progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high';
