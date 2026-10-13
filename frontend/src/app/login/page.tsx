@@ -9,7 +9,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured) {
-      alert('Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to frontend/.env.local, then restart the frontend.');
+      alert('Supabase is not configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUXX_SUPABASE_ANON_KEY to frontend/.env.local, then restart the frontend.');
       return;
     }
 
