@@ -29,44 +29,45 @@ export default function DashboardPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     initSession();
   }, []);
 
   const initSession = async () => {
-    if (sessionStorage.getItem(SIGNED_IN_TAB_KEY) !== 'pending') {
-      await supabase.auth.signOut({ scope: 'local' });
-      router.replace('/login');
-      setLoading(false);
-      return;
-    }
+    try {
+      if (sessionStorage.getItem(SIGNED_IN_TAB_KEY) !== 'pending') {
+        await supabase.auth.signOut({ scope: 'local' });
+        router.replace('/login');
+        return;
+      }
 
-    let userProfile: UserProfile | null = null;
-    
-    // Check Supabase OAuth session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      userProfile = {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const userProfile: UserProfile = {
         id: session.user.id,
         email: session.user.email || '',
         full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
         avatar_url: session.user.user_metadata?.avatar_url || '',
       };
-    }
 
-    if (!userProfile) {
-      router.push('/login');
-      return;
+      setCurrentUser(userProfile);
+      await api.syncProfile(userProfile);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load dashboard data.');
+    } finally {
+      setLoading(false);
     }
-
-    setCurrentUser(userProfile);
-    await api.syncProfile(userProfile);
-    await loadData(userProfile);
-    setLoading(false);
   };
 
-  const loadData = async (user: UserProfile) => {
+  const loadData = async () => {
     const [fetchedUsers, fetchedTasks, fetchedAnalytics] = await Promise.all([
       api.getUsers(),
       api.getTasks(),
@@ -80,8 +81,15 @@ export default function DashboardPage() {
   const handleRefresh = async () => {
     if (currentUser) {
       setLoading(true);
-      await loadData(currentUser);
-      setLoading(false);
+      setLoadError(null);
+      try {
+        await loadData();
+      } catch (error) {
+        console.error('Failed to refresh dashboard data:', error);
+        setLoadError(error instanceof Error ? error.message : 'Failed to refresh dashboard data.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -90,7 +98,7 @@ export default function DashboardPage() {
     if (!currentUser) return;
     const res = await api.createTask(taskData);
     if (res.success || res.task) {
-      await loadData(currentUser);
+      await loadData();
     } else {
       throw new Error(res.error || 'Failed to create task');
     }
@@ -100,7 +108,7 @@ export default function DashboardPage() {
     if (!currentUser) return;
     const res = await api.updateTask(taskId, updates);
     if (res.success) {
-      await loadData(currentUser);
+      await loadData();
     } else {
       throw new Error(res.error || 'Failed to update task');
     }
@@ -115,7 +123,7 @@ export default function DashboardPage() {
     if (!currentUser) return;
     const res = await api.deleteTask(taskId);
     if (!res.success) throw new Error(res.error || 'Failed to delete task');
-    await loadData(currentUser);
+    await loadData();
   };
 
   // Filter Tasks Client-side
@@ -224,6 +232,17 @@ export default function DashboardPage() {
           <div className="py-20 flex flex-col items-center justify-center text-slate-400">
             <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
             <p className="text-xs font-medium">Fetching tasks...</p>
+          </div>
+        ) : loadError ? (
+          <div className="bg-white rounded-2xl border border-rose-200 p-8 text-center max-w-xl mx-auto my-8" role="alert">
+            <h3 className="text-base font-bold text-rose-700">Could not load dashboard data</h3>
+            <p className="text-sm text-slate-600 mt-2">{loadError}</p>
+            <button
+              onClick={handleRefresh}
+              className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold"
+            >
+              Try again
+            </button>
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto my-8">
