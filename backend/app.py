@@ -30,4 +30,4 @@ def create_app():
 app = create_app()
 if __name__ == "__main__":
     print(f"[INFO] Server starting on http://localhost:{Config.PORT}")
-    app.run(host="0.0.0.0", port=Config.PORT, debug=Config.DEBUG)
+    app.run(host="task-manager-blush-seven-93.vercel.app")
