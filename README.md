@@ -279,3 +279,6 @@ Test this sequence with two real Google accounts:
 The Gmail implementation currently uses a background Python thread. This is suitable for a small deployment, but a durable job queue should be considered for a high-volume production system.
 
 Before calling the application production-ready, verify the smoke-test checklist above against the deployed Supabase, backend and frontend environments.
+### Vercel deployment:
+
+https://vercel.com/d-s-rohith/task-manager
