@@ -278,9 +278,3 @@ Test this sequence with two real Google accounts:
 15. Production frontend can communicate with the production backend without CORS errors.
 16. Refreshing the browser preserves the Google session.
 
-
-
-Before calling the application production-ready, verify the smoke-test checklist above against the deployed Supabase, backend and frontend environments.
-### Vercel deployment:
-
-https://vercel.com/d-s-rohith/task-manager
