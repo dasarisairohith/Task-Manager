@@ -16,6 +16,10 @@ Flask REST API ───────► Supabase PostgreSQL
 
 The browser authenticates with Supabase. Every protected Flask endpoint validates the Supabase access token and uses the authenticated user ID from the token rather than trusting user IDs supplied by the browser.
 
+### Vercel deployment:
+
+https://vercel.com/d-s-rohith/task-manager
+
 ## Application flow
 
 1. Opening the application sends the user to the sign-in page.
@@ -274,9 +278,7 @@ Test this sequence with two real Google accounts:
 15. Production frontend can communicate with the production backend without CORS errors.
 16. Refreshing the browser preserves the Google session.
 
-# ⚠️ Production notes
 
-The Gmail implementation currently uses a background Python thread. This is suitable for a small deployment, but a durable job queue should be considered for a high-volume production system.
 
 Before calling the application production-ready, verify the smoke-test checklist above against the deployed Supabase, backend and frontend environments.
 ### Vercel deployment:
